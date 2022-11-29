@@ -1,10 +1,11 @@
 const express = require("express");
+const cookieParser = require('cookie-parser');
 const app = express();
 const PORT = 8080; // default port 8080
 
 app.use(express.json());
-
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // app.use((req, res, next) => {
 //   console.log(`${req.method} ${req.url}`)
@@ -35,6 +36,13 @@ app.post("/urls/:id/delete", (req, res) => {
   res.redirect("/urls")
 });
 
+app.post("/login", (req, res) => {
+  //console.log(req.body); // Log the POST request body to the console
+  res.cookie('name', req.body.usernameInput)
+  //console.log('req.body', req.body.usernameInput) -- to check that I'm getting the right username input
+  res.redirect("/urls")
+});
+
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
   urlDatabase[id] = req.body.longURL;
@@ -47,7 +55,10 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = {
+    username: req.cookies["name"],
+  };
+  res.render("urls_new", templateVars);
 });
 
 app.post("/urls", (req, res) => {
@@ -64,7 +75,10 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = { 
+    urls: urlDatabase,
+    username: req.cookies["name"]
+   };
   res.render("urls_index", templateVars);
 });
 
@@ -75,8 +89,18 @@ app.get("/u/:id", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] /* What goes here? */};
+  const templateVars = { 
+    id: req.params.id,
+    longURL: urlDatabase[req.params.id],
+    username: req.cookies["name"]
+  };
   res.render("urls_show", templateVars);
+});
+
+app.post("/logout", (req, res) => {
+  console.log("logout requested"); // Log the POST request body to the console
+  res.clearCookie('name', req.cookies["name"])
+  res.redirect(`/urls`)
 });
 
 app.listen(PORT, () => {
