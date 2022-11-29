@@ -40,6 +40,15 @@ app.post("/urls", (req, res) => {
   res.send("Ok"); // Respond with 'Ok' (we will replace this)
 });
 
+app.post("/urls/:id/delete", (req, res) => {
+  console.log(req.body); // Log the POST request body to the console
+  const id = req.params.id
+  delete urlDatabase[id];
+  console.log("New database objects:", urlDatabase);
+  res.redirect("/urls")
+  res.send("Object deleted"); // Respond with 'Ok' (we will replace this)
+});
+
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
