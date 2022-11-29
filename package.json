@@ -4,14 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "./node_modules/.bin/nodemon -L express_server.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jamesraymondbrown/tinyapp.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "[James Brown, jamesraymondbrown@gmail.com]",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/jamesraymondbrown/tinyapp/issues"
@@ -19,7 +20,9 @@
   "homepage": "https://github.com/jamesraymondbrown/tinyapp#readme",
   "dependencies": {
     "ejs": "^3.1.8",
-    "express": "^4.18.2",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
     "nodemon": "^2.0.20"
   }
 }
