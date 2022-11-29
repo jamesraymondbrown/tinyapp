@@ -6,6 +6,10 @@ app.use(express.json());
 
 app.use(express.urlencoded({ extended: true }));
 
+// app.use((req, res, next) => {
+//   console.log(`${req.method} ${req.url}`)
+// })
+
 app.set("view engine", "ejs");
 
 function generateRandomString() {
@@ -23,6 +27,14 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
+app.post("/urls/:id/delete", (req, res) => {
+  //console.log(req.body); // Log the POST request body to the console
+  const id = req.params.id
+  delete urlDatabase[id];
+  console.log("New database objects:",urlDatabase);
+  res.redirect("/urls")
+});
+
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
@@ -36,17 +48,8 @@ app.post("/urls", (req, res) => {
   const id = generateRandomString();
   urlDatabase[id] = req.body.longURL;
   console.log(urlDatabase);
-  res.redirect(`/urls/:id`)
+  res.redirect(`/urls/${id}`)
   res.send("Ok"); // Respond with 'Ok' (we will replace this)
-});
-
-app.post("/urls/:id/delete", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
-  const id = req.params.id
-  delete urlDatabase[id];
-  console.log("New database objects:", urlDatabase);
-  res.redirect("/urls")
-  res.send("Object deleted"); // Respond with 'Ok' (we will replace this)
 });
 
 app.get("/urls.json", (req, res) => {

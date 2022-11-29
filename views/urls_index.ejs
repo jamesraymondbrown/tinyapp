@@ -33,14 +33,14 @@
             <tr>
               <td><%= id %></td>
               <td><%= urls[id] %></td>
-              <td><form method="POST" action="/urls/9sm5xK/delete">
+              <td><form method="POST" action="/urls/<%= id %>/delete">
                 <button type="submit" class="btn btn-success" id="myButton" >Delete</button>
               </form></td>
             </tr>
           <% } %>
         </tbody>
       </table>
-      <a href="#" > Shorten a new URL! </a>
+      <a href="/urls/new" > Shorten a new URL! </a>
     </main>
     <!-- Bootstrap JS -->
     <script
