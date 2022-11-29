@@ -2,13 +2,17 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 
+app.use(express.json());
+
 app.use(express.urlencoded({ extended: true }));
 
 app.set("view engine", "ejs");
 
 function generateRandomString() {
-  return Math.floor(Math.random() * 999999);
+  return (Math.random() + 1).toString(36).slice(2,8)
 };
+
+//console.log(generateRandomString());
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -29,6 +33,9 @@ app.get("/urls/new", (req, res) => {
 
 app.post("/urls", (req, res) => {
   console.log(req.body); // Log the POST request body to the console
+  const id = generateRandomString();
+  urlDatabase[id] = req.body.longURL;
+  console.log(urlDatabase);
   res.send("Ok"); // Respond with 'Ok' (we will replace this)
 });
 
