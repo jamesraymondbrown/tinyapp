@@ -35,6 +35,13 @@ app.post("/urls/:id/delete", (req, res) => {
   res.redirect("/urls")
 });
 
+app.post("/urls/:id", (req, res) => {
+  const id = req.params.id;
+  urlDatabase[id] = req.body.longURL;
+  //console.log('new urlDatabase values:', urlDatabase);
+  res.redirect("/urls");
+});
+
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });

@@ -22,8 +22,23 @@
         </p>
       </div>
       <a href="/urls/new" > Shorten a new URL! </a>
+      <form class="form-inline" action="/urls/<%= id %>" method="POST">
+        <div class="form-group mb-2">
+          <label for="longURL">Edit your URL</label>
+          <input
+            class="form-control"
+            type="text"
+            name="longURL"
+            placeholder="http://"
+            style="width: 300px; margin: 1em"
+          />
+          <button type="submit" class="btn btn-primary">Edit</button>
+        </div>
+      </form>
       <div class="card-footer text-muted"></div>
     </div>
+
+
     <!-- Bootstrap JS -->
     <script
       src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
