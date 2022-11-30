@@ -16,13 +16,18 @@
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
+        <% if (user === undefined) { %>
+          <a class="nav-item nav-link" href="/register">Register</a>
+          <a class="nav-item nav-link" href="/login">Login</a>
+        <% } %>
       </div>
     </div>
     <% if (user !== undefined) { %>
       <b><%= user.email %></b>
     <% } %>
     <% if (user === undefined) { %>
-      <form class="form-inline" action="/login" method="POST" name="username">
+      <!-- <a href="">Login</a> -->
+      <!-- {<form class="form-inline" action="/login" method="POST" name="username">
         <input
         class="form-control"
         type="text"
@@ -31,7 +36,7 @@
         style="width: 300px; margin: 1em"
         />
         <button type="submit" class="btn btn-primary">Submit</button>
-      </form>
+      </form>} -->
     <% } else { %>
       <form class="form-inline" action="/logout" method="POST" name="logout">
         <button type="submit" class="btn btn-outline-light">Logout</button>

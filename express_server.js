@@ -152,6 +152,28 @@ app.post("/register", (req, res) => {
   }
 });
 
+app.get("/login", (req, res) => {
+  const templateVars = {
+    user: users[req.cookies["user_id"]]
+  };
+  res.render("login", templateVars);
+});
+
+app.post("/login", (req, res) => {
+  //console.log(req.body); // Log the POST request body to the console
+  // const userEmail = req.body.email;
+  // const password = req.body.password;
+  // if (userEmail === "" || password === "") {
+  //   res.status(400).send("Please check that you've inputted a username and password!");
+  // } else if (checkUsers(req.body.email) === null) {
+  //   res.status(400).send("That email already has an account registered!");
+  // } else {
+  //users[username] = {name: username, password: password} // add user
+  res.cookie('user_id', users[id].id) //login new user
+  //res.cookie("nameOfCookieValue", nameOfVariableYouWantToUseForCookieData) --> How to make a cookie
+  res.redirect(`/urls`)
+});
+
 app.use((req, res, next) => {
   res.status(404).send("404 page not found!");
 });
