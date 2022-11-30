@@ -35,15 +35,39 @@ const generateRandomString = () => {
   return (Math.random() + 1).toString(36).slice(2,8);
 };
 
-const checkUsers = (registrationEmail) => {
+//a function to check whether a user's inputted email is already contained in our DB. It returns "null" if the user is in our DB, and "true" if they're not there
+const checkUsers = (loginEmail) => {
   let value = true;
   for (const user of Object.keys(users)) {
     //console.log(users[user].email);
-    if (users[user].email === registrationEmail) {
+    if (users[user].email === loginEmail) {
       value = null;
     } 
   } return value;
 };
+
+//a function to find the User ID, required in order to create a cookie on login
+const retrieveUserID = (loginEmail) => {
+  for (const user of Object.keys(users)) {
+    //console.log(users[user].email);
+    if (users[user].email === loginEmail) {
+      userID = users[user].id;
+    } 
+  } return userID;
+}
+
+
+const checkUsersPassword = (loginPassword) => {
+  let value = true;
+  for (const user of Object.keys(users)) {
+    //console.log(users[user].email);
+    if (users[user].password === loginPassword) {
+      value = null;
+    } 
+  } return value;
+}
+
+//console.log(checkUsersPassword("snakePassword")); //--> checkUsersPassword function test code
 
 // console.log("checkusers", checkUsers("snake@example.com")); --> checkUsers function test code
 
@@ -59,12 +83,13 @@ app.post("/urls/:id/delete", (req, res) => {
   res.redirect("/urls");
 });
 
-app.post("/login", (req, res) => {
-  //console.log(req.body); // Log the POST request body to the console
-  res.cookie('name', req.body.usernameInput);
-  //console.log('req.body', req.body.usernameInput) -- to check that I'm getting the right username input
-  res.redirect("/urls");
-});
+// OLD LOGIN PROCESS  
+// app.post("/login", (req, res) => {
+//   //console.log(req.body); // Log the POST request body to the console
+//   res.cookie('name', req.body.usernameInput);
+//   //console.log('req.body', req.body.usernameInput) -- to check that I'm getting the right username input
+//   res.redirect("/urls");
+// });
 
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
@@ -123,7 +148,7 @@ app.get("/urls/:id", (req, res) => {
 app.post("/logout", (req, res) => {
   console.log("logout requested"); // Log the POST request body to the console
   res.clearCookie('user_id', req.cookies["user_id"]);
-  res.redirect(`/urls`);
+  res.redirect(`/login`);
 });
 
 app.get("/register", (req, res) => {
@@ -134,7 +159,6 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  //console.log(req.body); // Log the POST request body to the console
   const id = generateRandomString()
   const userEmail = req.body.email;
   const password = req.body.password;
@@ -145,9 +169,7 @@ app.post("/register", (req, res) => {
   } else {
   users[id] = {id: id, email: userEmail, password: password}
   console.log("users:", users)
-  //users[username] = {name: username, password: password} // add user
   res.cookie('user_id', users[id].id) //login new user
-  //res.cookie("nameOfCookieValue", nameOfVariableYouWantToUseForCookieData) --> How to make a cookie
   res.redirect(`/urls`)
   }
 });
@@ -160,18 +182,18 @@ app.get("/login", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  //console.log(req.body); // Log the POST request body to the console
-  // const userEmail = req.body.email;
-  // const password = req.body.password;
-  // if (userEmail === "" || password === "") {
-  //   res.status(400).send("Please check that you've inputted a username and password!");
-  // } else if (checkUsers(req.body.email) === null) {
-  //   res.status(400).send("That email already has an account registered!");
-  // } else {
-  //users[username] = {name: username, password: password} // add user
-  res.cookie('user_id', users[id].id) //login new user
-  //res.cookie("nameOfCookieValue", nameOfVariableYouWantToUseForCookieData) --> How to make a cookie
-  res.redirect(`/urls`)
+  const userEmail = req.body.email;
+  const password = req.body.password;
+  console.log('inputtedinfo', userEmail, password);
+  if (checkUsers(userEmail) === true) {
+    res.status(403).send("User not found!");
+  } if (checkUsers(userEmail) === null && checkUsersPassword(password) === true) {
+    res.status(403).send("Incorrect Password!")
+  } else {
+    let loginUserID = retrieveUserID(userEmail);
+    res.cookie('user_id', users[loginUserID].id)
+    res.redirect(`/urls`)
+  }
 });
 
 app.use((req, res, next) => {

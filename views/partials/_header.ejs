@@ -23,21 +23,9 @@
       </div>
     </div>
     <% if (user !== undefined) { %>
-      <b><%= user.email %></b>
+      <b><%="logged in as: " + user.email %></b>
     <% } %>
-    <% if (user === undefined) { %>
-      <!-- <a href="">Login</a> -->
-      <!-- {<form class="form-inline" action="/login" method="POST" name="username">
-        <input
-        class="form-control"
-        type="text"
-        name="usernameInput"
-        placeholder="username"
-        style="width: 300px; margin: 1em"
-        />
-        <button type="submit" class="btn btn-primary">Submit</button>
-      </form>} -->
-    <% } else { %>
+    <% if (user !== undefined) { %>
       <form class="form-inline" action="/logout" method="POST" name="logout">
         <button type="submit" class="btn btn-outline-light">Logout</button>
       </form>
