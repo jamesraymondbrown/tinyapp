@@ -7,14 +7,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+
 // app.use((req, res, next) => {
 //   console.log(`${req.method} ${req.url}`)
 // })
 
 app.set("view engine", "ejs");
 
-function generateRandomString() {
-  return (Math.random() + 1).toString(36).slice(2,8)
+const generateRandomString = () => {
+  return (Math.random() + 1).toString(36).slice(2,8);
 };
 
 //console.log(generateRandomString());
@@ -24,23 +25,36 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = {
+  snake: {
+    id: "snake",
+    email: "snake@example.com",
+    password: "snakePassword",
+  },
+  turtle: {
+    id: "turtle",
+    email: "turtle@example.com",
+    password: "turtlePassword",
+  },
+};
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
 app.post("/urls/:id/delete", (req, res) => {
   //console.log(req.body); // Log the POST request body to the console
-  const id = req.params.id
+  const id = req.params.id;
   delete urlDatabase[id];
   console.log("New database objects:",urlDatabase);
-  res.redirect("/urls")
+  res.redirect("/urls");
 });
 
 app.post("/login", (req, res) => {
   //console.log(req.body); // Log the POST request body to the console
-  res.cookie('name', req.body.usernameInput)
+  res.cookie('name', req.body.usernameInput);
   //console.log('req.body', req.body.usernameInput) -- to check that I'm getting the right username input
-  res.redirect("/urls")
+  res.redirect("/urls");
 });
 
 app.post("/urls/:id", (req, res) => {
@@ -56,7 +70,7 @@ app.get("/hello", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   const templateVars = {
-    username: req.cookies["name"],
+    user: users[req.cookies["user_id"]]
   };
   res.render("urls_new", templateVars);
 });
@@ -66,7 +80,7 @@ app.post("/urls", (req, res) => {
   const id = generateRandomString();
   urlDatabase[id] = req.body.longURL;
   console.log(urlDatabase);
-  res.redirect(`/urls/${id}`)
+  res.redirect(`/urls/${id}`);
   res.send("Ok"); // Respond with 'Ok' (we will replace this)
 });
 
@@ -75,44 +89,58 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { 
+  const templateVars = {
     urls: urlDatabase,
-    username: req.cookies["name"]
-   };
+    user: users[req.cookies["user_id"]]
+  };
   res.render("urls_index", templateVars);
 });
 
 app.get("/u/:id", (req, res) => {
-  const id = req.params.id
+  const id = req.params.id;
   const longURL = urlDatabase[id];
   res.redirect(longURL);
 });
 
 app.get("/urls/:id", (req, res) => {
-  const templateVars = { 
+  const templateVars = {
     id: req.params.id,
     longURL: urlDatabase[req.params.id],
-    username: req.cookies["name"]
+    user: users[req.cookies["user_id"]]
   };
   res.render("urls_show", templateVars);
 });
 
 app.post("/logout", (req, res) => {
   console.log("logout requested"); // Log the POST request body to the console
-  res.clearCookie('name', req.cookies["name"])
-  res.redirect(`/urls`)
+  res.clearCookie('user_id', req.cookies["user_id"]);
+  res.redirect(`/urls`);
 });
 
 app.get("/register", (req, res) => {
-  const templateVars = { 
-    username: req.cookies["name"]
+  const templateVars = {
+    user: users[req.cookies["user_id"]]
   };
-  res.render("registration", templateVars);
+  res.render("register", templateVars);
+});
+
+app.post("/register", (req, res) => {
+  console.log(req.body); // Log the POST request body to the console
+  const id = generateRandomString()
+
+  const userEmail = req.body.email;
+  const password = req.body.password;
+  users[id] = {id: id, email: userEmail, password: password}
+  console.log("users:", users)
+  //users[username] = {name: username, password: password} // add user
+  res.cookie('user_id', users[id].id) //login new user
+  //res.cookie("nameOfCookieValue", nameOfVariableYouWantToUseForCookieData) --> How to make a cookie
+  res.redirect(`/urls`)
 });
 
 app.use((req, res, next) => {
-  res.status(404).send("404 page not found!")
-})
+  res.status(404).send("404 page not found!");
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);

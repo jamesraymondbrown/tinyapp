@@ -18,8 +18,10 @@
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
     </div>
-    <b><%= username %></b>
-    <% if (username === undefined) { %>
+    <% if (user !== undefined) { %>
+      <b><%= user.email %></b>
+    <% } %>
+    <% if (user === undefined) { %>
       <form class="form-inline" action="/login" method="POST" name="username">
         <input
         class="form-control"
