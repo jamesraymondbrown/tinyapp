@@ -67,6 +67,19 @@ const checkUsersPassword = (loginPassword) => {
   } return value;
 }
 
+//Checks if the url ID is contained in our DB. If value = null, then the key is contained in the DB
+const checkDatabaseForID = (ID) => {
+  let value = true;
+  for (const key in urlDatabase) {
+    //console.log(users[user].email);
+    if (key === ID) {
+      value = null;
+    } 
+  } return value;
+}
+
+// console.log(checkDatabaseForID("b2xVn2"))
+
 //console.log(checkUsersPassword("snakePassword")); //--> checkUsersPassword function test code
 
 // console.log("checkusers", checkUsers("snake@example.com")); --> checkUsers function test code
@@ -106,11 +119,17 @@ app.get("/urls/new", (req, res) => {
   const templateVars = {
     user: users[req.cookies["user_id"]]
   };
+  if (req.cookies["user_id"] === undefined) {
+    res.redirect("/register");
+  }
   res.render("urls_new", templateVars);
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
+  if (req.cookies["user_id"] === undefined) {
+    res.status(401).send("You must be logged in to shorten a URL");
+  }
+  console.log('postURLs', req.body); // Log the POST request body to the console
   const id = generateRandomString();
   urlDatabase[id] = req.body.longURL;
   console.log(urlDatabase);
@@ -132,6 +151,9 @@ app.get("/urls", (req, res) => {
 
 app.get("/u/:id", (req, res) => {
   const id = req.params.id;
+  if (checkDatabaseForID(id) === true) {
+    res.status(404).send("That URL ID does not exist!")
+  }
   const longURL = urlDatabase[id];
   res.redirect(longURL);
 });
@@ -155,6 +177,9 @@ app.get("/register", (req, res) => {
   const templateVars = {
     user: users[req.cookies["user_id"]]
   };
+  if (req.cookies["user_id"] !== undefined) {
+    res.redirect("/urls");
+  }
   res.render("register", templateVars);
 });
 
@@ -178,6 +203,10 @@ app.get("/login", (req, res) => {
   const templateVars = {
     user: users[req.cookies["user_id"]]
   };
+  if (req.cookies["user_id"] !== undefined) {
+    res.redirect("/urls");
+  }
+  // console.log(req.cookies["user_id"]) --> how to view the value of any user id cookies on the user's browser
   res.render("login", templateVars);
 });
 
