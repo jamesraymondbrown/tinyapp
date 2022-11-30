@@ -7,18 +7,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-
 // app.use((req, res, next) => {
 //   console.log(`${req.method} ${req.url}`)
 // })
 
 app.set("view engine", "ejs");
-
-const generateRandomString = () => {
-  return (Math.random() + 1).toString(36).slice(2,8);
-};
-
-//console.log(generateRandomString());
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -37,6 +30,22 @@ const users = {
     password: "turtlePassword",
   },
 };
+
+const generateRandomString = () => {
+  return (Math.random() + 1).toString(36).slice(2,8);
+};
+
+const checkUsers = (registrationEmail) => {
+  let value = true;
+  for (const user of Object.keys(users)) {
+    //console.log(users[user].email);
+    if (users[user].email === registrationEmail) {
+      value = null;
+    } 
+  } return value;
+};
+
+// console.log("checkusers", checkUsers("snake@example.com")); --> checkUsers function test code
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -125,17 +134,22 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
+  //console.log(req.body); // Log the POST request body to the console
   const id = generateRandomString()
-
   const userEmail = req.body.email;
   const password = req.body.password;
+  if (userEmail === "" || password === "") {
+    res.status(400).send("Please check that you've inputted a username and password!");
+  } else if (checkUsers(req.body.email) === null) {
+    res.status(400).send("That email already has an account registered!");
+  } else {
   users[id] = {id: id, email: userEmail, password: password}
   console.log("users:", users)
   //users[username] = {name: username, password: password} // add user
   res.cookie('user_id', users[id].id) //login new user
   //res.cookie("nameOfCookieValue", nameOfVariableYouWantToUseForCookieData) --> How to make a cookie
   res.redirect(`/urls`)
+  }
 });
 
 app.use((req, res, next) => {
