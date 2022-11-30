@@ -14,8 +14,14 @@ app.use(cookieParser());
 app.set("view engine", "ejs");
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  },
 };
 
 const users = {
@@ -78,7 +84,7 @@ const checkDatabaseForID = (ID) => {
   } return value;
 }
 
-// console.log(checkDatabaseForID("b2xVn2"))
+console.log(checkDatabaseForID("b2xVn2"))
 
 //console.log(checkUsersPassword("snakePassword")); //--> checkUsersPassword function test code
 
@@ -131,7 +137,7 @@ app.post("/urls", (req, res) => {
   }
   console.log('postURLs', req.body); // Log the POST request body to the console
   const id = generateRandomString();
-  urlDatabase[id] = req.body.longURL;
+  urlDatabase[id] = { longURL: req.body.longURL, userID: req.cookies["user_id"]}
   console.log(urlDatabase);
   res.redirect(`/urls/${id}`);
   res.send("Ok"); // Respond with 'Ok' (we will replace this)
