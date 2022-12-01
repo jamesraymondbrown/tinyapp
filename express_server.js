@@ -16,11 +16,15 @@ app.set("view engine", "ejs");
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
-    userID: "aJ48lW",
+    userID: "snake",
+  },
+  b6UTxS: {
+    longURL: "https://www.facebook.com",
+    userID: "snake",
   },
   i3BoGr: {
     longURL: "https://www.google.ca",
-    userID: "aJ48lW",
+    userID: "turtle",
   },
 };
 
@@ -36,6 +40,19 @@ const users = {
     password: "turtlePassword",
   },
 };
+
+//A function to retrieve URLs accociated with the current user 
+const urlsForUser = (id) => {
+  const userURLs = {};
+  const currentUser = id;
+  for (const shortID of Object.keys(urlDatabase)) {
+    if (urlDatabase[shortID].userID === currentUser) {
+      userURLs[shortID] = urlDatabase[shortID]
+    }
+  } return userURLs;
+};
+
+//console.log(urlsForUser("snake"));
 
 const generateRandomString = () => {
   return (Math.random() + 1).toString(36).slice(2,8);
@@ -112,7 +129,8 @@ app.post("/urls/:id/delete", (req, res) => {
 
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
-  urlDatabase[id] = req.body.longURL;
+  //urlDatabase[id] = req.body.longURL; --> Old code for posting from this URL
+  urlDatabase[id] = { longURL: req.body.longURL, userID: req.cookies["user_id"]}
   //console.log('new urlDatabase values:', urlDatabase);
   res.redirect("/urls");
 });
@@ -137,7 +155,7 @@ app.post("/urls", (req, res) => {
   }
   console.log('postURLs', req.body); // Log the POST request body to the console
   const id = generateRandomString();
-  urlDatabase[id] = { longURL: req.body.longURL, userID: req.cookies["user_id"]}
+  urlDatabase[id] = { longURL: req.body.longURL, userID: req.cookies["user_id"]};
   console.log(urlDatabase);
   res.redirect(`/urls/${id}`);
   res.send("Ok"); // Respond with 'Ok' (we will replace this)
@@ -148,8 +166,12 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
+  if (req.cookies["user_id"] === undefined) {
+    res.status(401).send("You must be logged in to view shortened URLs");
+  }
+  const userURLs = urlsForUser(req.cookies["user_id"])
   const templateVars = {
-    urls: urlDatabase,
+    urls: userURLs,
     user: users[req.cookies["user_id"]]
   };
   res.render("urls_index", templateVars);
@@ -160,14 +182,21 @@ app.get("/u/:id", (req, res) => {
   if (checkDatabaseForID(id) === true) {
     res.status(404).send("That URL ID does not exist!")
   }
-  const longURL = urlDatabase[id];
+  const longURL = urlDatabase[id].longURL;
   res.redirect(longURL);
 });
 
 app.get("/urls/:id", (req, res) => {
+  const urlID = req.params.id;
+  const viewerID = req.cookies["user_id"]
+  if (viewerID === undefined) {
+    res.status(401).send("You must be logged in to view shortened URLs");
+  } if (urlDatabase[urlID].userID !== viewerID) {
+    res.status(401).send("You don't have permission to view this URL");
+  }
   const templateVars = {
     id: req.params.id,
-    longURL: urlDatabase[req.params.id],
+    longURL: urlDatabase[req.params.id].longURL,
     user: users[req.cookies["user_id"]]
   };
   res.render("urls_show", templateVars);
