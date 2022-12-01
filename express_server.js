@@ -41,13 +41,13 @@ const users = {
   },
 };
 
-//A function to retrieve URLs accociated with the current user 
+//A function to retrieve URLs accociated with the current user
 const urlsForUser = (id) => {
   const userURLs = {};
   const currentUser = id;
   for (const shortID of Object.keys(urlDatabase)) {
     if (urlDatabase[shortID].userID === currentUser) {
-      userURLs[shortID] = urlDatabase[shortID]
+      userURLs[shortID] = urlDatabase[shortID];
     }
   } return userURLs;
 };
@@ -65,19 +65,20 @@ const checkUsers = (loginEmail) => {
     //console.log(users[user].email);
     if (users[user].email === loginEmail) {
       value = null;
-    } 
+    }
   } return value;
 };
 
 //a function to find the User ID, required in order to create a cookie on login
 const retrieveUserID = (loginEmail) => {
+  let userID = "";
   for (const user of Object.keys(users)) {
     //console.log(users[user].email);
     if (users[user].email === loginEmail) {
       userID = users[user].id;
-    } 
+    }
   } return userID;
-}
+};
 
 
 const checkUsersPassword = (loginPassword) => {
@@ -86,9 +87,9 @@ const checkUsersPassword = (loginPassword) => {
     //console.log(users[user].email);
     if (users[user].password === loginPassword) {
       value = null;
-    } 
+    }
   } return value;
-}
+};
 
 //Checks if the url ID is contained in our DB. If value = null, then the key is contained in the DB
 const checkDatabaseForID = (ID) => {
@@ -97,11 +98,11 @@ const checkDatabaseForID = (ID) => {
     //console.log(users[user].email);
     if (key === ID) {
       value = null;
-    } 
+    }
   } return value;
-}
+};
 
-console.log(checkDatabaseForID("b2xVn2"))
+//console.log(checkDatabaseForID("b2xVn2"));
 
 //console.log(checkUsersPassword("snakePassword")); //--> checkUsersPassword function test code
 
@@ -118,7 +119,7 @@ app.post("/urls/:id/delete", (req, res) => {
   if (urlDatabase[req.params.id].userID !== viewerID) {
     res.status(401).send("You don't have permission to view this URL");
   } if (urlDatabase[id] === undefined) {
-    res.status(404).send("That URL ID does not exist!")
+    res.status(404).send("That URL ID does not exist!");
   } if (req.cookies["user_id"] === undefined) {
     res.status(401).send("You don't have permission to delete this URL");
   }
@@ -135,7 +136,7 @@ app.post("/urls/:id", (req, res) => {
   } if (req.cookies["user_id"] === undefined) {
     res.status(401).send("You must be logged in to view this URL");
   } if (urlDatabase[id] === undefined) {
-    res.status(404).send("That URL ID does not exist!")
+    res.status(404).send("That URL ID does not exist!");
   }
   urlDatabase[id] = { longURL: req.body.longURL, userID: req.cookies["user_id"]};
   res.redirect("/urls");
@@ -227,7 +228,7 @@ app.get("/register", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  const id = generateRandomString()
+  const id = generateRandomString();
   const userEmail = req.body.email;
   const password = req.body.password;
   if (userEmail === "" || password === "") {
@@ -235,10 +236,10 @@ app.post("/register", (req, res) => {
   } else if (checkUsers(req.body.email) === null) {
     res.status(400).send("That email already has an account registered!");
   } else {
-  users[id] = {id: id, email: userEmail, password: password}
-  console.log("users:", users)
-  res.cookie('user_id', users[id].id) //login new user
-  res.redirect(`/urls`)
+    users[id] = {id: id, email: userEmail, password: password};
+    console.log("users:", users);
+    res.cookie('user_id', users[id].id); //login new user
+    res.redirect(`/urls`);
   }
 });
 
@@ -260,15 +261,15 @@ app.post("/login", (req, res) => {
   if (checkUsers(userEmail) === true) {
     res.status(403).send("User not found!");
   } if (checkUsers(userEmail) === null && checkUsersPassword(password) === true) {
-    res.status(403).send("Incorrect Password!")
+    res.status(403).send("Incorrect Password!");
   } else {
     let loginUserID = retrieveUserID(userEmail);
-    res.cookie('user_id', users[loginUserID].id)
-    res.redirect(`/urls`)
+    res.cookie('user_id', users[loginUserID].id);
+    res.redirect(`/urls`);
   }
 });
 
-app.use((req, res, next) => {
+app.use((req, res) => {
   res.status(404).send("404 page not found!");
 });
 
