@@ -114,24 +114,30 @@ app.get("/", (req, res) => {
 app.post("/urls/:id/delete", (req, res) => {
   //console.log(req.body); // Log the POST request body to the console
   const id = req.params.id;
+  const viewerID = req.cookies["user_id"];
+  if (urlDatabase[req.params.id].userID !== viewerID) {
+    res.status(401).send("You don't have permission to view this URL");
+  } if (urlDatabase[id] === undefined) {
+    res.status(404).send("That URL ID does not exist!")
+  } if (req.cookies["user_id"] === undefined) {
+    res.status(401).send("You don't have permission to delete this URL");
+  }
   delete urlDatabase[id];
   console.log("New database objects:",urlDatabase);
   res.redirect("/urls");
 });
 
-// OLD LOGIN PROCESS  
-// app.post("/login", (req, res) => {
-//   //console.log(req.body); // Log the POST request body to the console
-//   res.cookie('name', req.body.usernameInput);
-//   //console.log('req.body', req.body.usernameInput) -- to check that I'm getting the right username input
-//   res.redirect("/urls");
-// });
-
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
-  //urlDatabase[id] = req.body.longURL; --> Old code for posting from this URL
-  urlDatabase[id] = { longURL: req.body.longURL, userID: req.cookies["user_id"]}
-  //console.log('new urlDatabase values:', urlDatabase);
+  const viewerID = req.cookies["user_id"];
+  if (urlDatabase[id].userID !== viewerID) {
+    res.status(401).send("You don't have permission to view this URL");
+  } if (req.cookies["user_id"] === undefined) {
+    res.status(401).send("You must be logged in to view this URL");
+  } if (urlDatabase[id] === undefined) {
+    res.status(404).send("That URL ID does not exist!")
+  }
+  urlDatabase[id] = { longURL: req.body.longURL, userID: req.cookies["user_id"]};
   res.redirect("/urls");
 });
 
@@ -169,7 +175,7 @@ app.get("/urls", (req, res) => {
   if (req.cookies["user_id"] === undefined) {
     res.status(401).send("You must be logged in to view shortened URLs");
   }
-  const userURLs = urlsForUser(req.cookies["user_id"])
+  const userURLs = urlsForUser(req.cookies["user_id"]);
   const templateVars = {
     urls: userURLs,
     user: users[req.cookies["user_id"]]
@@ -180,7 +186,7 @@ app.get("/urls", (req, res) => {
 app.get("/u/:id", (req, res) => {
   const id = req.params.id;
   if (checkDatabaseForID(id) === true) {
-    res.status(404).send("That URL ID does not exist!")
+    res.status(404).send("That URL ID does not exist!");
   }
   const longURL = urlDatabase[id].longURL;
   res.redirect(longURL);
@@ -188,10 +194,12 @@ app.get("/u/:id", (req, res) => {
 
 app.get("/urls/:id", (req, res) => {
   const urlID = req.params.id;
-  const viewerID = req.cookies["user_id"]
-  if (viewerID === undefined) {
+  const viewerID = req.cookies["user_id"];
+  if (urlDatabase[urlID] === undefined) {
+    res.status(404).send("That URL ID does not exist!");
+  } if (viewerID === undefined) {
     res.status(401).send("You must be logged in to view shortened URLs");
-  } if (urlDatabase[urlID].userID !== viewerID) {
+  } if (urlDatabase[req.params.id].userID !== viewerID) {
     res.status(401).send("You don't have permission to view this URL");
   }
   const templateVars = {
