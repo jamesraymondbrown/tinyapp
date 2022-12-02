@@ -1,6 +1,5 @@
-const cookieSession = require('cookie-session')
+const cookieSession = require('cookie-session');
 const express = require("express");
-//const cookieParser = require('cookie-parser');
 const app = express();
 const PORT = 8080; // default port 8080
 const bcrypt = require("bcryptjs");
@@ -8,18 +7,14 @@ const { getUserByEmail } = require("./helpers");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-//app.use(cookieParser());
 app.use(cookieSession({
   name: 'session',
   keys: ['superSecretKey', 'anotherEvenMoreSecretKey'],
-}))
-
-//This is where
-//You started
-//Making changes
+}));
 
 app.set("view engine", "ejs");
 
+//Default shortened URLs that can be used for testing
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
@@ -35,6 +30,7 @@ const urlDatabase = {
   },
 };
 
+//Default user accounts that can be used for testing
 const users = {
   snake: {
     id: "snake",
@@ -48,7 +44,7 @@ const users = {
   },
 };
 
-//A function to retrieve URLs accociated with the current user
+//function to retrieve URLs accociated with the current user
 const urlsForUser = (id) => {
   const userURLs = {};
   const currentUser = id;
@@ -59,71 +55,40 @@ const urlsForUser = (id) => {
   } return userURLs;
 };
 
-//console.log(urlsForUser("snake"));
-
+//function to generate a random string, that's used to create user IDs and url IDs
 const generateRandomString = () => {
   return (Math.random() + 1).toString(36).slice(2,8);
 };
 
-//REPLACED BY getUserEmail() a function to check whether a user's inputted email is already contained in our DB. It returns "null" if the user is in our DB, and "true" if they're not there
-// const checkUsers = (loginEmail) => {
-//   let value = true;
-//   for (const user of Object.keys(users)) {
-//     //console.log(users[user].email);
-//     if (users[user].email === loginEmail) {
-//       value = null;
-//     }
-//   } return value;
-// };
-
-//REPLACED BY getUserEmail() a function to find the User ID, required in order to create a cookie on login
-// const retrieveUserID = (loginEmail) => {
-//   let userID = "";
-//   for (const user of Object.keys(users)) {
-//     //console.log(users[user].email);
-//     if (users[user].email === loginEmail) {
-//       userID = users[user].id;
-//     }
-//   } return userID;
-// };
-
-//Refactoring the above function because it's not quite in the format that compass wants  ¯\_(ツ)_/¯
-
-
-
-const checkUsersPassword = (loginPassword) => {  // using this to test pre-programmed users snake and turtle, since bcrypt can't check these accounts properly
+//using this to check login credentials for pre-programmed users snake and turtle, since bcrypt can't check these accounts properly
+const checkUsersPassword = (loginPassword) => {
   let value = false;
   for (const user of Object.keys(users)) {
-    //console.log(users[user].email);
     if (users[user].password === loginPassword) {
       value = true;
     }
   } return value;
 };
 
-//Checks if the url ID is contained in our DB. If value = null, then the key is contained in the DB
+//checks if the url ID is contained in our DB. If value = null, then the key is contained in the DB
 const checkDatabaseForID = (ID) => {
   let value = true;
   for (const key in urlDatabase) {
-    //console.log(users[user].email);
     if (key === ID) {
       value = null;
     }
   } return value;
 };
 
-//console.log(checkDatabaseForID("b2xVn2"));
-
-//console.log(checkUsersPassword("snakePassword")); //--> checkUsersPassword function test code
-
-// console.log("checkusers", checkUsers("snake@example.com")); --> checkUsers function test code
-
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  if (req.session.user_id === undefined) {
+    res.redirect("/login");
+  } else {
+    res.redirect("/urls");
+  }
 });
 
 app.post("/urls/:id/delete", (req, res) => {
-  //console.log(req.body); // Log the POST request body to the console
   const id = req.params.id;
   const viewerID = req.session.user_id;
   if (urlDatabase[req.params.id].userID !== viewerID) {
@@ -161,7 +126,7 @@ app.get("/urls/new", (req, res) => {
     user: users[req.session.user_id]
   };
   if (req.session.user_id === undefined) {
-    res.redirect("/register");
+    res.redirect("/login");
   }
   res.render("urls_new", templateVars);
 });
@@ -170,12 +135,11 @@ app.post("/urls", (req, res) => {
   if (req.session.user_id === undefined) {
     res.status(401).send("You must be logged in to shorten a URL");
   }
-  console.log('postURLs', req.body); // Log the POST request body to the console
+  console.log('postURLs', req.body); 
   const id = generateRandomString();
   urlDatabase[id] = { longURL: req.body.longURL, userID: req.session.user_id};
   console.log(urlDatabase);
   res.redirect(`/urls/${id}`);
-  res.send("Ok"); // Respond with 'Ok' (we will replace this)
 });
 
 app.get("/urls.json", (req, res) => {
@@ -222,8 +186,6 @@ app.get("/urls/:id", (req, res) => {
 });
 
 app.post("/logout", (req, res) => {
-  console.log("logout requested"); // Log the POST request body to the console
-  // res.clearCookie('user_id', req.session.user_id);
   req.session = null;
   res.redirect(`/login`);
 });
@@ -262,21 +224,18 @@ app.get("/login", (req, res) => {
   if (req.session.user_id !== undefined) {
     res.redirect("/urls");
   }
-  // console.log(req.cookies["user_id"]) --> how to view the value of any user id cookies on the user's browser
   res.render("login", templateVars);
 });
 
 app.post("/login", (req, res) => {
   const userEmail = req.body.email;
   const password = req.body.password;
-  const hashedPassword = bcrypt.hashSync(password, 10);
   const userID = getUserByEmail(userEmail, users);
-  //console.log('inputtedinfo', userEmail, password); --> This line will log a user's inputted password. Very unsecure! 
   if (getUserByEmail(req.body.email, users) === null) {
     res.status(403).send("User not found!");
   } if (checkUsersPassword(password) === true || bcrypt.compareSync(password, users[userID].password) === true) {
     let loginUserID = getUserByEmail(userEmail, users);
-    req.session.user_id = users[loginUserID].id
+    req.session.user_id = users[loginUserID].id;
     res.redirect(`/urls`);
   } else {
     res.status(403).send("Incorrect Password!");
@@ -291,4 +250,4 @@ app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-module.exports = { users }
+module.exports = { users };
